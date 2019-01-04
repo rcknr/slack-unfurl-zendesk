@@ -1,0 +1,8 @@
+{
+  "ticket": {
+    "id": 1,
+    "subject": "Test",
+    "description": "Test ticket description",
+    "created_at": "2019-01-01T00:00:00Z"
+  }
+}
