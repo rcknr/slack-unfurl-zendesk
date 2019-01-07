@@ -4,9 +4,9 @@ namespace ZendeskSlackUnfurl;
 
 class ZendeskClient
 {
-    public function __construct($domain, $username, $password, $scheme = 'https')
+    public function __construct($base_url, $username, $password)
     {
-        $this->base_url = "$scheme://$domain/api/v2";
+        $this->base_url = $base_url;
         $this->auth_string = base64_encode("$username:$password");
     }
 
@@ -24,16 +24,26 @@ class ZendeskClient
 
     private function request($resource, $id = null)
     {
-        $url = sprintf('%s/%s/%s', $this->base_url, $resource, $id);
-        $response = file_get_contents($url, false, $this->getContext());
+        $resource = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $resource));
+        $url = sprintf('%s/%ss/%s', $this->base_url, $resource, $id);
 
-        return json_decode($response, true);
+        if ($response = file_get_contents($url, false, $this->getContext())) {
+            return json_decode($response, true);
+        }
+
+        return null;
     }
 
-    public function getTicket($id)
+    public function __call($name, $arguments)
     {
-        $ticket = $this->request('tickets', $id);
+        preg_match('/^get(?P<resource>[A-Z]\w+)/', $name, $m);
 
-        return $ticket[array_keys($ticket)[0]];
+        if ($m && $arguments) {
+            if ($resource = $this->request($m['resource'], $arguments[0])) {
+                return $resource[array_keys($resource)[0]];
+            }
+        }
+
+        return null;
     }
 }

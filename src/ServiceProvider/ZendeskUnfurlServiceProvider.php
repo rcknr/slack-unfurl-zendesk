@@ -21,7 +21,9 @@ class ZendeskUnfurlServiceProvider implements ServiceProviderInterface, EventLis
         $app['zendesk.token'] = getenv('ZENDESK_TOKEN');
 
         $app[ZendeskClient::class] = function ($app) {
-            return new ZendeskClient($app['zendesk.domain'], $app['zendesk.username'], $app['zendesk.token']);
+          $base_url = sprintf('https://%s/api/v2', $app['zendesk.domain']);
+
+          return new ZendeskClient($base_url, $app['zendesk.username'], $app['zendesk.token']);
         };
 
         $app[ZendeskUnfurler::class] = function ($app) {

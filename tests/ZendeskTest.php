@@ -12,14 +12,17 @@ class ZendeskTest extends TestCase
 {
     public function testUnfurl()
     {
-        $json_string = file_get_contents('./Resources/ticket.json');
-        $expected = json_decode($json_string, true);
+        $ticket = file_get_contents(__DIR__ . '/Resources/ticket.json');
+        $user = file_get_contents(__DIR__ . '/Resources/user.json');
+        $ticket_expected = json_decode($ticket, true);
+        $user_expected = json_decode($user, true);
 
-        $response = new Response($json_string);
-        $url = parse_url(self::$server->setResponseOfPath('/api/v2/tickets/1', $response));
+        $response = new Response($ticket);
+        $url = parse_url(self::$server->setResponseOfPath('/tickets/1', $response));
+        self::$server->setResponseOfPath('/users/1', new Response($user));
 
         $domain = "${url['host']}:${url['port']}";
-        $client = new ZendeskClient($domain, 'test', 'test', $url['scheme']);
+        $client = new ZendeskClient("${url['scheme']}://$domain", 'test', 'test');
 
         $unfurler = new ZendeskUnfurler($client, $domain, new NullLogger());
         $data = [
@@ -42,7 +45,23 @@ class ZendeskTest extends TestCase
         $this->assertArrayHasKey('title', $unfurl);
         $this->assertArrayHasKey('text', $unfurl);
         $this->assertArrayHasKey('ts', $unfurl);
+        $this->assertArrayHasKey('footer', $unfurl);
 
-        $this->assertEquals($expected['ticket']['description'], $unfurl['text']);
+        $this->assertContains(
+          $ticket_expected['ticket']['subject'],
+          $unfurl['title']
+        );
+        $this->assertEquals(
+          $ticket_expected['ticket']['description'],
+          $unfurl['text']
+        );
+        $this->assertEquals(
+          strtotime($ticket_expected['ticket']['created_at']),
+          $unfurl['ts']
+        );
+        $this->assertContains(
+          $user_expected['user']['name'],
+          $unfurl['footer']
+        );
     }
 }

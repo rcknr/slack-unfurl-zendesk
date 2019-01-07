@@ -64,7 +64,14 @@ class ZendeskUnfurler implements EventSubscriberInterface
         return [
             'title' => "<$url|#{$ticket['id']}>: {$ticket['subject']}",
             'text' => $ticket['description'],
-            'ts' => (new \DateTime($ticket['created_at']))->getTimestamp(),
+            'ts' => strtotime($ticket['created_at']),
+            'footer' => array_key_exists('submitter', $ticket) ?
+                sprintf(
+                    'Submitted by <https://%s/agent/#/users/%s|%s>',
+                    $this->domain,
+                    $ticket['submitter_id'],
+                    $ticket['submitter']['name']) :
+                null
         ];
     }
 
@@ -78,6 +85,9 @@ class ZendeskUnfurler implements EventSubscriberInterface
             return null;
         }
 
-        return $this->client->getTicket($m['id']);
+        $ticket = $this->client->getTicket($m['id']);
+        $ticket['submitter'] = $this->client->getUser($ticket['submitter_id']);
+
+        return $ticket;
     }
 }
