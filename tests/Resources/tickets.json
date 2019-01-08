@@ -1,0 +1,23 @@
+{
+  "ticket": {
+    "id": 1,
+    "subject": "Test",
+    "description": "Test ticket description",
+    "created_at": "2019-01-01T00:00:00Z",
+    "submitter_id": 1,
+    "fields": [
+      {
+        "id": 1,
+        "value": "test_value"
+      },
+      {
+        "id": 2,
+        "value": ""
+      },
+      {
+        "id": 3,
+        "value": null
+      }
+    ]
+  }
+}

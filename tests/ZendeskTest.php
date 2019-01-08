@@ -2,7 +2,6 @@
 
 namespace ZendeskSlackUnfurl\Test;
 
-use donatj\MockWebServer\Response;
 use Psr\Log\NullLogger;
 use SlackUnfurl\Event\UnfurlEvent;
 use ZendeskSlackUnfurl\Event\Subscriber\ZendeskUnfurler;
@@ -12,19 +11,16 @@ class ZendeskTest extends TestCase
 {
     public function testUnfurl()
     {
-        $ticket = file_get_contents(__DIR__ . '/Resources/ticket.json');
-        $user = file_get_contents(__DIR__ . '/Resources/user.json');
-        $ticket_expected = json_decode($ticket, true);
-        $user_expected = json_decode($user, true);
+        $ticket_expected = self::setUpResource('tickets');
+        $ticket_fields_expected = self::setUpResource('ticket_fields');
+        $user_expected = self::setUpResource('users');
 
-        $response = new Response($ticket);
-        $url = parse_url(self::$server->setResponseOfPath('/tickets/1', $response));
-        self::$server->setResponseOfPath('/users/1', new Response($user));
-
+        $url = parse_url(self::$server->getServerRoot());
         $domain = "${url['host']}:${url['port']}";
         $client = new ZendeskClient("${url['scheme']}://$domain", 'test', 'test');
+        $fields = '1';
 
-        $unfurler = new ZendeskUnfurler($client, $domain, new NullLogger());
+        $unfurler = new ZendeskUnfurler($client, compact('domain', 'fields'), new NullLogger());
         $data = [
             'type' => 'link_shared',
             'user' => 'Uxxxxxxxx',
@@ -40,7 +36,10 @@ class ZendeskTest extends TestCase
         $event = new UnfurlEvent($data);
         $unfurler->unfurl($event);
 
-        $unfurl = array_values($event->getUnfurls())[0];
+        $unfurl = reset($event->getUnfurls());
+        dump($unfurl);
+
+        $this->assertInternalType('array', $unfurl);
 
         $this->assertArrayHasKey('title', $unfurl);
         $this->assertArrayHasKey('text', $unfurl);
@@ -48,20 +47,28 @@ class ZendeskTest extends TestCase
         $this->assertArrayHasKey('footer', $unfurl);
 
         $this->assertContains(
-          $ticket_expected['ticket']['subject'],
+          $ticket_expected['subject'],
           $unfurl['title']
         );
         $this->assertEquals(
-          $ticket_expected['ticket']['description'],
+          $ticket_expected['description'],
           $unfurl['text']
         );
         $this->assertEquals(
-          strtotime($ticket_expected['ticket']['created_at']),
+          strtotime($ticket_expected['created_at']),
           $unfurl['ts']
         );
         $this->assertContains(
-          $user_expected['user']['name'],
+          $user_expected['name'],
           $unfurl['footer']
+        );
+        $this->assertEquals(
+            $ticket_fields_expected[0]['title'],
+            $unfurl['fields'][0]['title']
+        );
+        $this->assertEquals(
+            $ticket_fields_expected[0]['custom_field_options'][0]['name'],
+            $unfurl['fields'][0]['value']
         );
     }
 }

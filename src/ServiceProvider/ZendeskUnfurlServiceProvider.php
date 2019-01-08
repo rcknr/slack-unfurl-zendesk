@@ -19,6 +19,7 @@ class ZendeskUnfurlServiceProvider implements ServiceProviderInterface, EventLis
         $app['zendesk.domain'] = getenv('ZENDESK_DOMAIN');
         $app['zendesk.username'] = getenv('ZENDESK_USERNAME');
         $app['zendesk.token'] = getenv('ZENDESK_TOKEN');
+        $app['zendesk.fields'] = getenv('ZENDESK_FIELDS');
 
         $app[ZendeskClient::class] = function ($app) {
           $base_url = sprintf('https://%s/api/v2', $app['zendesk.domain']);
@@ -29,7 +30,10 @@ class ZendeskUnfurlServiceProvider implements ServiceProviderInterface, EventLis
         $app[ZendeskUnfurler::class] = function ($app) {
             return new ZendeskUnfurler(
                 $app[ZendeskClient::class],
-                $app['zendesk.domain'],
+                [
+                    'domain' => $app['zendesk.domain'],
+                    'fields' => $app['zendesk.fields']
+                ],
                 $app['logger']
             );
         };

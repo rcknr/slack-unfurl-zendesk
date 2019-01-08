@@ -1,0 +1,12 @@
+{
+  "ticket_fields": [{
+    "id": 1,
+    "type": "tagger",
+    "title": "Test field with a value",
+    "custom_field_options": [{
+      "id": 1,
+      "name": "Test value",
+      "value": "test_value"
+    }]
+  }]
+}

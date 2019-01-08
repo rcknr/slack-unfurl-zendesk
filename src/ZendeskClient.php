@@ -22,10 +22,9 @@ class ZendeskClient
         ]);
     }
 
-    private function request($resource, $id = null)
+    private function request($resource, $arguments = [])
     {
-        $resource = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $resource));
-        $url = sprintf('%s/%ss/%s', $this->base_url, $resource, $id);
+        $url = sprintf('%s/%s/%s', $this->base_url, $resource, reset($arguments));
 
         if ($response = file_get_contents($url, false, $this->getContext())) {
             return json_decode($response, true);
@@ -34,13 +33,14 @@ class ZendeskClient
         return null;
     }
 
-    public function __call($name, $arguments)
+    public function __call($function, $arguments)
     {
-        preg_match('/^get(?P<resource>[A-Z]\w+)/', $name, $m);
+        if (preg_match('/^get(?P<name>[A-Z]\w+)/', $function, $m)) {
+            $name = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $m['name']));
+            $name .= $arguments ? 's' : null;
 
-        if ($m && $arguments) {
-            if ($resource = $this->request($m['resource'], $arguments[0])) {
-                return $resource[array_keys($resource)[0]];
+            if ($resource = $this->request($name, $arguments)) {
+                return reset($resource);
             }
         }
 
