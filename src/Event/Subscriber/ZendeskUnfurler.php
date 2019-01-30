@@ -86,13 +86,11 @@ class ZendeskUnfurler implements EventSubscriberInterface
             return null;
         }
 
-        /** @noinspection PhpUndefinedMethodInspection */
         return $this->client->getTicket($m['id']);
     }
 
     private function formatFooter(array $ticket)
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         $submitter = $this->client->getUser($ticket['submitter_id']);
 
         if ($submitter) {
@@ -113,7 +111,6 @@ class ZendeskUnfurler implements EventSubscriberInterface
         });
 
         if($fields) {
-            /** @noinspection PhpUndefinedMethodInspection */
             $ticket_fields = array_reduce($this->client->getTicketFields(), function ($carry, $ticket_field) {
                 if ($ticket_field['type'] === 'tagger') {
                     $carry[$ticket_field['id']] = [

@@ -2,6 +2,11 @@
 
 namespace ZendeskSlackUnfurl;
 
+/**
+ * @method getTicket($id)
+ * @method getTicketFields()
+ * @method getUser($id)
+ */
 class ZendeskClient
 {
     public function __construct($base_url, $username, $password)
