@@ -9,8 +9,6 @@ Zendesk links unfurler for [slack-unfurl].
 1. Install [slack-unfurl]
 2. Require this package:
 ```
-composer config minimum-stability dev
-composer config prefer-stable true
 composer require rcknr/slack-unfurl-zendesk
 ```
 3. Merge `env.example` from this project to `.env`
